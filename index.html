@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Group Chat</title>
+  <style>
+    body { font-family: sans-serif; background: #1e1e1e; color: #eee; margin: 0; }
+    #auth, #chat { display: none; padding: 20px; }
+    .hidden { display: none; }
+    input, button { margin: 5px 0; padding: 8px; width: 100%; }
+    #messages { height: 300px; overflow-y: scroll; background: #2e2e2e; padding: 10px; margin-bottom: 10px; }
+    .msg { margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+<div id="auth">
+  <h2>Login or Register</h2>
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="chat">
+  <h2>Welcome, <span id="userDisplay"></span></h2>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type a message..." />
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+  const users = {}; // Simulated user database
+  let currentUser = null;
+
+  function register() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (users[user]) {
+      alert("Username already exists.");
+    } else {
+      users[user] = pass;
+      alert("Registered successfully.");
+    }
+  }
+
+  function login() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (users[user] === pass) {
+      currentUser = user;
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('chat').style.display = 'block';
+      document.getElementById('userDisplay').textContent = user;
+    } else {
+      alert("Invalid credentials.");
+    }
+  }
+
+  function logout() {
+    currentUser = null;
+    document.getElementById('chat').style.display = 'none';
+    document.getElementById('auth').style.display = 'block';
+    document.getElementById('messages').innerHTML = '';
+  }
+
+  function sendMessage() {
+    const msg = document.getElementById('messageInput').value;
+    if (msg.trim() === '') return;
+    const messages = document.getElementById('messages');
+    const newMsg = document.createElement('div');
+    newMsg.className = 'msg';
+    newMsg.textContent = `${currentUser}: ${msg}`;
+    messages.appendChild(newMsg);
+    document.getElementById('messageInput').value = '';
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // Show auth screen on load
+  document.getElementById('auth').style.display = 'block';
+</script>
+
+</body>
+</html>
