@@ -41,6 +41,14 @@
     .msg {
       margin: 5px 0;
     }
+    #profilePic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      border: 2px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +63,7 @@
 
 <div id="chat">
   <h2>Welcome, <span id="userDisplay"></span></h2>
+  <img id="profilePic" src="" alt="Profile Picture" />
   <div id="messages"></div>
   <input type="text" id="messageInput" placeholder="Type a message..." />
   <button onclick="sendMessage()">Send</button>
@@ -66,12 +75,13 @@
   <h2>Edit Profile</h2>
   <input type="text" id="newUsername" placeholder="New Username (3–30 chars)" />
   <input type="password" id="newPassword" placeholder="New Password (min 8 chars)" />
+  <input type="file" id="newProfilePic" accept="image/*" />
   <button onclick="updateProfile()">Save Changes</button>
   <button onclick="cancelEdit()">Cancel</button>
 </div>
 
 <script>
-  const users = {};
+  const users = JSON.parse(localStorage.getItem("users")) || {};
   let currentUser = null;
 
   function register() {
@@ -91,7 +101,8 @@
     if (users[user]) {
       alert("Username already exists.");
     } else {
-      users[user] = pass;
+      users[user] = { password: pass, profilePic: "" };
+      localStorage.setItem("users", JSON.stringify(users));
       alert("Registered successfully.");
     }
   }
@@ -105,19 +116,26 @@
       return;
     }
 
-    if (users[user] !== pass) {
+    if (users[user].password !== pass) {
       alert("Incorrect password.");
       return;
     }
 
     currentUser = user;
+    localStorage.setItem("currentUser", currentUser);
+    showChat();
+  }
+
+  function showChat() {
     document.getElementById('auth').style.display = 'none';
     document.getElementById('chat').style.display = 'block';
-    document.getElementById('userDisplay').textContent = user;
+    document.getElementById('userDisplay').textContent = currentUser;
+    document.getElementById('profilePic').src = users[currentUser].profilePic || '';
   }
 
   function logout() {
     currentUser = null;
+    localStorage.removeItem("currentUser");
     document.getElementById('chat').style.display = 'none';
     document.getElementById('auth').style.display = 'block';
     document.getElementById('messages').innerHTML = '';
@@ -149,6 +167,8 @@
   function updateProfile() {
     const newUser = document.getElementById('newUsername').value.trim();
     const newPass = document.getElementById('newPassword').value;
+    const newPicInput = document.getElementById('newProfilePic');
+    const reader = new FileReader();
 
     if (newUser.length < 3 || newUser.length > 30) {
       alert("New username must be between 3 and 30 characters.");
@@ -165,18 +185,38 @@
       return;
     }
 
-    // Update user data
-    delete users[currentUser];
-    users[newUser] = newPass;
-    currentUser = newUser;
+    const applyUpdate = (base64Pic) => {
+      delete users[currentUser];
+      users[newUser] = {
+        password: newPass,
+        profilePic: base64Pic || users[currentUser].profilePic
+      };
+      currentUser = newUser;
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("currentUser", currentUser);
+      document.getElementById('userDisplay').textContent = currentUser;
+      document.getElementById('profilePic').src = users[currentUser].profilePic;
+      document.getElementById('profileEdit').style.display = 'none';
+      document.getElementById('chat').style.display = 'block';
+      alert("Profile updated successfully.");
+    };
 
-    document.getElementById('userDisplay').textContent = currentUser;
-    document.getElementById('profileEdit').style.display = 'none';
-    document.getElementById('chat').style.display = 'block';
-    alert("Profile updated successfully.");
+    if (newPicInput.files.length > 0) {
+      reader.onload = () => applyUpdate(reader.result);
+      reader.readAsDataURL(newPicInput.files[0]);
+    } else {
+      applyUpdate();
+    }
   }
 
-  document.getElementById('auth').style.display = 'block';
+  // Auto-login if saved
+  const savedUser = localStorage.getItem("currentUser");
+  if (savedUser && users[savedUser]) {
+    currentUser = savedUser;
+    showChat();
+  } else {
+    document.getElementById('auth').style.display = 'block';
+  }
 </script>
 
 </body>
