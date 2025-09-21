@@ -12,7 +12,7 @@
       color: #eee;
       margin: 0;
     }
-    #auth, #chat {
+    #auth, #chat, #profileEdit {
       display: none;
       padding: 20px;
     }
@@ -58,7 +58,16 @@
   <div id="messages"></div>
   <input type="text" id="messageInput" placeholder="Type a message..." />
   <button onclick="sendMessage()">Send</button>
+  <button onclick="showProfileEditor()">Edit Profile</button>
   <button onclick="logout()">Logout</button>
+</div>
+
+<div id="profileEdit">
+  <h2>Edit Profile</h2>
+  <input type="text" id="newUsername" placeholder="New Username (3–30 chars)" />
+  <input type="password" id="newPassword" placeholder="New Password (min 8 chars)" />
+  <button onclick="updateProfile()">Save Changes</button>
+  <button onclick="cancelEdit()">Cancel</button>
 </div>
 
 <script>
@@ -124,6 +133,47 @@
     messages.appendChild(newMsg);
     document.getElementById('messageInput').value = '';
     messages.scrollTop = messages.scrollHeight;
+  }
+
+  function showProfileEditor() {
+    document.getElementById('chat').style.display = 'none';
+    document.getElementById('profileEdit').style.display = 'block';
+    document.getElementById('newUsername').value = currentUser;
+  }
+
+  function cancelEdit() {
+    document.getElementById('profileEdit').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+  }
+
+  function updateProfile() {
+    const newUser = document.getElementById('newUsername').value.trim();
+    const newPass = document.getElementById('newPassword').value;
+
+    if (newUser.length < 3 || newUser.length > 30) {
+      alert("New username must be between 3 and 30 characters.");
+      return;
+    }
+
+    if (newPass.length < 8) {
+      alert("New password must be at least 8 characters.");
+      return;
+    }
+
+    if (newUser !== currentUser && users[newUser]) {
+      alert("Username already taken.");
+      return;
+    }
+
+    // Update user data
+    delete users[currentUser];
+    users[newUser] = newPass;
+    currentUser = newUser;
+
+    document.getElementById('userDisplay').textContent = currentUser;
+    document.getElementById('profileEdit').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+    alert("Profile updated successfully.");
   }
 
   document.getElementById('auth').style.display = 'block';
