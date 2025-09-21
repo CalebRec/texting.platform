@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Group Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"></script>
   <style>
     body {
       font-family: 'Montserrat', sans-serif;
@@ -84,6 +86,20 @@
 </div>
 
 <script>
+  // 🔧 Replace this with your actual Firebase config
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "your-app.firebaseapp.com",
+    databaseURL: "https://your-app.firebaseio.com",
+    projectId: "your-app",
+    storageBucket: "your-app.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdefg"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
   const users = JSON.parse(localStorage.getItem("users")) || {};
   let currentUser = null;
 
@@ -149,14 +165,14 @@
     const msg = input.value.trim();
     if (msg === '') return;
 
-    const messages = document.getElementById('messages');
-    const newMsg = document.createElement('div');
-    newMsg.className = 'msg';
-    newMsg.textContent = `${currentUser}: ${msg}`;
-    messages.appendChild(newMsg);
+    const messageData = {
+      user: currentUser,
+      text: msg,
+      timestamp: Date.now()
+    };
 
+    db.ref("messages").push(messageData);
     input.value = '';
-    messages.scrollTop = messages.scrollHeight;
   }
 
   function showProfileEditor() {
@@ -223,15 +239,8 @@
     }
   });
 
-  // Auto-login if saved
-  const savedUser = localStorage.getItem("currentUser");
-  if (savedUser && users[savedUser]) {
-    currentUser = savedUser;
-    showChat();
-  } else {
-    document.getElementById('auth').style.display = 'block';
-  }
-</script>
-
-</body>
-</html>
+  // Listen for new messages
+  db.ref("messages").on("child_added", snapshot => {
+    const msg = snapshot.val();
+    const messages = document.getElementById('messages');
+    const newMsg = document
