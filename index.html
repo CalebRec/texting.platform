@@ -1,85 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Group Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      background: #1e1e1e;
-      color: #eee;
-      margin: 0;
-    }
-    #auth, #chat, #profileEdit {
-      display: none;
-      padding: 20px;
-    }
-    input, button {
-      margin: 5px 0;
-      padding: 8px;
-      width: 100%;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      border: none;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #3a3a3a;
-      color: #fff;
-      cursor: pointer;
-    }
-    #messages {
-      height: 300px;
-      overflow-y: scroll;
-      background: #2e2e2e;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-    .msg {
-      margin: 5px 0;
-    }
-    #profilePic {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 10px;
-      border: 2px solid #eee;
-    }
-  </style>
-</head>
-<body>
-
-<div id="auth">
-  <h2>Login or Register</h2>
-  <input type="text" id="username" placeholder="Username (3–30 chars)" />
-  <input type="password" id="password" placeholder="Password (min 8 chars)" />
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
-</div>
-
-<div id="chat">
-  <h2>Welcome, <span id="userDisplay"></span></h2>
-  <img id="profilePic" src="" alt="Profile Picture" />
-  <div id="messages"></div>
-  <input type="text" id="messageInput" placeholder="Type a message..." />
-  <button onclick="sendMessage()">Send</button>
-  <button onclick="showProfileEditor()">Edit Profile</button>
-  <button onclick="logout()">Logout</button>
-</div>
-
-<div id="profileEdit">
-  <h2>Edit Profile</h2>
-  <input type="text" id="newUsername" placeholder="New Username (3–30 chars)" />
-  <input type="password" id="newPassword" placeholder="New Password (min 8 chars)" />
-  <input type="file" id="newProfilePic" accept="image/*" />
-  <button onclick="updateProfile()">Save Changes</button>
-  <button onclick="cancelEdit()">Cancel</button>
-</div>
-
 <script>
   const users = JSON.parse(localStorage.getItem("users")) || {};
   let currentUser = null;
@@ -142,14 +60,17 @@
   }
 
   function sendMessage() {
-    const msg = document.getElementById('messageInput').value;
-    if (msg.trim() === '') return;
+    const input = document.getElementById('messageInput');
+    const msg = input.value.trim();
+    if (msg === '') return;
+
     const messages = document.getElementById('messages');
     const newMsg = document.createElement('div');
     newMsg.className = 'msg';
     newMsg.textContent = `${currentUser}: ${msg}`;
     messages.appendChild(newMsg);
-    document.getElementById('messageInput').value = '';
+
+    input.value = '';
     messages.scrollTop = messages.scrollHeight;
   }
 
@@ -209,6 +130,14 @@
     }
   }
 
+  // Enter to send, Shift+Enter for newline
+  document.getElementById('messageInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
   // Auto-login if saved
   const savedUser = localStorage.getItem("currentUser");
   if (savedUser && users[savedUser]) {
@@ -218,6 +147,3 @@
     document.getElementById('auth').style.display = 'block';
   }
 </script>
-
-</body>
-</html>
